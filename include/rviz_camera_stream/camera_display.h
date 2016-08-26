@@ -38,7 +38,7 @@
 #include <OgreSharedPtr.h>
 #include <OgreTexture.h>
 
-#include <sensor_msgs/CameraInfo.h>
+# include <sensor_msgs/CameraInfo.h>
 #include <std_srvs/Trigger.h>
 
 #include "rviz/image/image_display_base.h"
@@ -109,16 +109,11 @@ private:
   void unsubscribe();
 
   ros::ServiceServer trigger_service_;
-  bool triggerCallback(std_srvs::TriggerRequest& req,
-                       std_srvs::TriggerResponse& res)
-  {
-      trigger_activated_ = true;
-      res.success = true;
-      res.message = "New image was triggered";
-      return true;
-  }
-
+  bool triggerCallback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res);
   bool trigger_activated_;
+  float requested_framerate_;
+  ros::Time last_image_publication_time_;
+
   void caminfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg);
 
   bool updateCamera();

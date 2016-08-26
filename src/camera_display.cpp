@@ -162,6 +162,8 @@ CameraPub::CameraPub()
   , new_caminfo_(false)
   , force_render_(false)
   , trigger_activated_(false)
+  , requested_framerate_(100)
+  , last_image_publication_time_(0)
   , caminfo_ok_(false)
   , video_publisher_(0)
 {
@@ -196,9 +198,22 @@ CameraPub::~CameraPub()
   }
 }
 
+bool CameraPub::triggerCallback(std_srvs::TriggerRequest& req,
+                     std_srvs::TriggerResponse& res)
+{
+    trigger_activated_ = true;
+    res.success = true;
+    res.message = "New image was triggered";
+    return true;
+}
+
 void CameraPub::onInitialize()
 {
   Display::onInitialize();
+
+  /// Absolute name as RVIZ is started anonymously and other nodes need a fixed name
+  ros::param::get("/rviz_camera_framerate", requested_framerate_);
+  ros::param::set("/rviz_camera_framerate", requested_framerate_); // make sure that parameter is shown in rosparam list
 
   video_publisher_ = new video_export::VideoPublisher();
 
@@ -258,19 +273,16 @@ void CameraPub::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 
 void CameraPub::postRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 {
-  // Publish the rendered window video stream
-  float framerate = -1;
-  ros::param::get("/rviz_camera_framerate", framerate); /// Absolute name as RVIZ is started anonymously and other nodes need a fixed name
-  ros::param::set("/rviz_camera_framerate", framerate); // make sure that parameter is shown in rosparam list
+// Publish the rendered window video stream
+  ros::Duration elapsed_duration = ros::Time::now() - last_image_publication_time_;
+  bool time_is_up = (requested_framerate_ > 0) && elapsed_duration.toSec() > 1.0 / requested_framerate_;
 
-  static ros::Time last_image_time = ros::Time::now();
-  bool time_is_up = (framerate > 0) && (ros::Time::now() - last_image_time).toSec() > 1.0 / framerate;
   if (! (trigger_activated_ || time_is_up))
   {
       return;
   }
   trigger_activated_ = false;
-  last_image_time = ros::Time::now();
+  last_image_publication_time_ = ros::Time::now();
 
   std::string frame_id;
   {
