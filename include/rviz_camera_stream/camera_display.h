@@ -39,8 +39,9 @@
 #include <OgreTexture.h>
 
 # include <sensor_msgs/CameraInfo.h>
-
 # include "rviz/image/image_display_base.h"
+#include <std_srvs/Trigger.h>
+
 #endif
 
 namespace Ogre
@@ -102,10 +103,16 @@ private Q_SLOTS:
 
   void updateTopic();
   virtual void updateQueueSize();
+  virtual void updateFrameRate();
 
 private:
   void subscribe();
   void unsubscribe();
+
+  ros::ServiceServer trigger_service_;
+  bool triggerCallback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res);
+  bool trigger_activated_;
+  ros::Time last_image_publication_time_;
 
   void caminfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg);
 
@@ -120,6 +127,7 @@ private:
   RosTopicProperty* camera_info_property_;
   DisplayGroupVisibilityProperty* visibility_property_;
   IntProperty* queue_size_property_;
+  FloatProperty* frame_rate_property_;
 
   sensor_msgs::CameraInfo::ConstPtr current_caminfo_;
   boost::mutex caminfo_mutex_;
