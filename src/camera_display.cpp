@@ -161,9 +161,13 @@ CameraPub::CameraPub()
   : Display()
   , new_caminfo_(false)
   , force_render_(false)
+  , trigger_activated_(false)
   , caminfo_ok_(false)
   , video_publisher_(0)
 {
+  ros::NodeHandle nh_("~");
+  trigger_service_= nh_.advertiseService("/rviz_camera_trigger", &CameraPub::triggerCallback, this);
+
   topic_property_ = new RosTopicProperty("Image Topic", "",
       QString::fromStdString(ros::message_traits::datatype<sensor_msgs::Image>()),
       "sensor_msgs::Image topic to publish to.", this, SLOT(updateTopic()));
@@ -254,8 +258,20 @@ void CameraPub::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 
 void CameraPub::postRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 {
-  // TODO(lucasw) allow this to be throttled down
   // Publish the rendered window video stream
+  float framerate = 2;
+  ros::param::get("/rviz_camera_framerate", framerate); /// Absolute name as RVIZ is started anonymously and other nodes need a fixed name
+  ros::param::set("/rviz_camera_framerate", framerate); // make sure that parameter is shown in rosparam list
+
+  static ros::Time last_image_time = ros::Time::now();
+  bool time_is_up = (framerate > 0) && (ros::Time::now() - last_image_time).toSec() > 1.0 / framerate;
+  if (! (trigger_activated_ || time_is_up))
+  {
+      return;
+  }
+  trigger_activated_ = false;
+  last_image_time = ros::Time::now();
+
   std::string frame_id;
   {
     boost::mutex::scoped_lock lock(caminfo_mutex_);

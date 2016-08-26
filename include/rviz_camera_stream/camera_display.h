@@ -38,9 +38,10 @@
 #include <OgreSharedPtr.h>
 #include <OgreTexture.h>
 
-# include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/CameraInfo.h>
+#include <std_srvs/Trigger.h>
 
-# include "rviz/image/image_display_base.h"
+#include "rviz/image/image_display_base.h"
 #endif
 
 namespace Ogre
@@ -107,6 +108,17 @@ private:
   void subscribe();
   void unsubscribe();
 
+  ros::ServiceServer trigger_service_;
+  bool triggerCallback(std_srvs::TriggerRequest& req,
+                       std_srvs::TriggerResponse& res)
+  {
+      trigger_activated_ = true;
+      res.success = true;
+      res.message = "New image was triggered";
+      return true;
+  }
+
+  bool trigger_activated_;
   void caminfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg);
 
   bool updateCamera();
