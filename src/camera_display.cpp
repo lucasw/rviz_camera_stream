@@ -259,7 +259,7 @@ void CameraPub::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 void CameraPub::postRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 {
   // Publish the rendered window video stream
-  float framerate = 2;
+  float framerate = -1;
   ros::param::get("/rviz_camera_framerate", framerate); /// Absolute name as RVIZ is started anonymously and other nodes need a fixed name
   ros::param::set("/rviz_camera_framerate", framerate); // make sure that parameter is shown in rosparam list
 
