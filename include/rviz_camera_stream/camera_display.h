@@ -39,9 +39,9 @@
 #include <OgreTexture.h>
 
 # include <sensor_msgs/CameraInfo.h>
+# include "rviz/image/image_display_base.h"
 #include <std_srvs/Trigger.h>
 
-#include "rviz/image/image_display_base.h"
 #endif
 
 namespace Ogre
