@@ -190,6 +190,12 @@ CameraPub::CameraPub()
       "trigger single images with the /rviz_camera_trigger service.",
                                            this, SLOT(updateFrameRate()));
   frame_rate_property_->setMin(-1);
+
+  background_color_property_ = new FloatProperty("Background Color", 0,
+      "Sets monochrome background color, values from 0.0 to 1.0.",
+                                           this, SLOT(updateBackgroundColor()));
+  background_color_property_->setMin(0.0);
+  background_color_property_->setMax(1.0);
 }
 
 CameraPub::~CameraPub()
@@ -292,6 +298,9 @@ void CameraPub::postRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
   trigger_activated_ = false;
   last_image_publication_time_ = cur_time;
 
+  float background_value = background_color_property_->getFloat();
+  render_texture_->getViewport(0)->setBackgroundColour(Ogre::ColourValue(background_value, background_value, background_value, 1.0));
+
   std::string frame_id;
   {
     boost::mutex::scoped_lock lock(caminfo_mutex_);
@@ -371,6 +380,10 @@ void CameraPub::updateQueueSize()
 }
 
 void CameraPub::updateFrameRate()
+{
+}
+
+void CameraPub::updateBackgroundColor()
 {
 }
 

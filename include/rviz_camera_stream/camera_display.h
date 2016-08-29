@@ -104,6 +104,7 @@ private Q_SLOTS:
   void updateTopic();
   virtual void updateQueueSize();
   virtual void updateFrameRate();
+  virtual void updateBackgroundColor();
 
 private:
   void subscribe();
@@ -128,6 +129,7 @@ private:
   DisplayGroupVisibilityProperty* visibility_property_;
   IntProperty* queue_size_property_;
   FloatProperty* frame_rate_property_;
+  FloatProperty* background_color_property_;
 
   sensor_msgs::CameraInfo::ConstPtr current_caminfo_;
   boost::mutex caminfo_mutex_;
