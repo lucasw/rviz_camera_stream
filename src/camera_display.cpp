@@ -174,7 +174,7 @@ CameraPub::CameraPub()
 
   // std::string default_display_name = findUnusedDisplayName();
   name_property_ = new StringProperty("Display name", "", //QString(default_display_name.c_str()
-      "Name fo this camera display", this, SLOT(updateDisplayName()));
+      "Name for this camera display", this, SLOT(updateDisplayName()));
 
   camera_info_property_ = new RosTopicProperty("Camera Info Topic", "",
       QString::fromStdString(ros::message_traits::datatype<sensor_msgs::CameraInfo>()),
