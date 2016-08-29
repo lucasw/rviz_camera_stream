@@ -31,6 +31,7 @@
 #define RVIZ_CAMERA_STREAM_CAMERA_DISPLAY_H
 
 #include <QObject>
+#include <string>
 
 #ifndef Q_MOC_RUN
 #include <OgreMaterial.h>
@@ -106,8 +107,12 @@ private Q_SLOTS:
   virtual void updateQueueSize();
   virtual void updateFrameRate();
   virtual void updateBackgroundColor();
+  virtual void updateDisplayNamespace();
 
 private:
+  std::string camera_trigger_name_;
+  ros::NodeHandle nh_;
+
   void subscribe();
   void unsubscribe();
 
@@ -115,6 +120,8 @@ private:
   bool triggerCallback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res);
   bool trigger_activated_;
   ros::Time last_image_publication_time_;
+
+  std::string findUnusedDisplayName();
 
   void caminfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg);
 
@@ -129,6 +136,8 @@ private:
   RosTopicProperty* camera_info_property_;
   DisplayGroupVisibilityProperty* visibility_property_;
   IntProperty* queue_size_property_;
+  StringProperty* namespace_property_;
+
   FloatProperty* frame_rate_property_;
   ColorProperty* background_color_property_;
 

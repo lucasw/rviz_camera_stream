@@ -76,6 +76,19 @@ public:
     image_id_(0)
   {
   }
+
+  bool is_active()
+  {
+    return !pub_.getTopic().empty();
+  }
+
+  void setNodehandle(const ros::NodeHandle& nh)
+  {
+    shutdown();
+    nh_ = nh;
+    it_ = image_transport::ImageTransport(nh_);
+  }
+
   void shutdown()
   {
     if (pub_.getTopic() != "")
@@ -160,6 +173,8 @@ bool validateFloats(const sensor_msgs::CameraInfo& msg)
 
 CameraPub::CameraPub()
   : Display()
+  , camera_trigger_name_("camera_trigger")
+  , nh_()
   , new_caminfo_(false)
   , force_render_(false)
   , trigger_activated_(false)
@@ -167,13 +182,12 @@ CameraPub::CameraPub()
   , caminfo_ok_(false)
   , video_publisher_(0)
 {
-  ros::NodeHandle nh_("~");
-  // trigger_service_ = nh_.advertiseService("/rviz_camera_trigger",
-  //     &CameraPub::triggerCallback, this);
-
   topic_property_ = new RosTopicProperty("Image Topic", "",
       QString::fromStdString(ros::message_traits::datatype<sensor_msgs::Image>()),
       "sensor_msgs::Image topic to publish to.", this, SLOT(updateTopic()));
+
+  namespace_property_ = new StringProperty("Display namespace", "",
+      "Namespace for this display.", this, SLOT(updateDisplayNamespace()));
 
   camera_info_property_ = new RosTopicProperty("Camera Info Topic", "",
       QString::fromStdString(ros::message_traits::datatype<sensor_msgs::CameraInfo>()),
@@ -209,12 +223,18 @@ CameraPub::~CameraPub()
   }
 }
 
-bool CameraPub::triggerCallback(std_srvs::TriggerRequest& req,
-                     std_srvs::TriggerResponse& res)
+bool CameraPub::triggerCallback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res)
 {
-  trigger_activated_ = true;
-  res.success = true;
-  res.message = "New image was triggered";
+    res.success = video_publisher_->is_active();
+    if (res.success)
+    {
+      trigger_activated_ = true;
+      res.message = "New image was triggered";
+    }
+    else
+    {
+      res.message = "Image publisher not configured";
+    }
   return true;
 }
 
@@ -262,6 +282,7 @@ void CameraPub::onInitialize()
   visibility_property_->setIcon(loadPixmap("package://rviz/icons/visibility.svg", true));
 
   this->addChild(visibility_property_, 0);
+  updateDisplayNamespace();
 }
 
 void CameraPub::updateTopic()
@@ -328,12 +349,23 @@ void CameraPub::subscribe()
   if (!isEnabled())
     return;
 
-  if (topic_property_->getTopicStd().empty())
+  std::string topic_name = topic_property_->getTopicStd();
+  if (topic_name.empty())
   {
     setStatus(StatusProperty::Error, "Output Topic", "No topic set");
     return;
   }
-  if (camera_info_property_->getTopicStd().empty())
+
+  std::string error;
+  if (!ros::names::validate(topic_name, error))
+  {
+    setStatus(StatusProperty::Error, "Output Topic", QString(error.c_str()));
+    return;
+  }
+
+
+  std::string caminfo_topic = camera_info_property_->getTopicStd();
+  if (caminfo_topic.empty())
   {
     setStatus(StatusProperty::Error, "Camera Info", "No topic set");
     return;
@@ -342,8 +374,6 @@ void CameraPub::subscribe()
   // std::string target_frame = fixed_frame_.toStdString();
   // Display::enableTFFilter(target_frame);
 
-  std::string topic = topic_property_->getTopicStd();
-  std::string caminfo_topic = camera_info_property_->getTopicStd();
 
   try
   {
@@ -356,7 +386,7 @@ void CameraPub::subscribe()
     setStatus(StatusProperty::Error, "Camera Info", QString("Error subscribing: ") + e.what());
   }
 
-  video_publisher_->advertise(topic);
+  video_publisher_->advertise(topic_name);
   setStatus(StatusProperty::Ok, "Output Topic", "Topic set");
 }
 
@@ -382,6 +412,39 @@ void CameraPub::updateFrameRate()
 
 void CameraPub::updateBackgroundColor()
 {
+}
+
+void CameraPub::updateDisplayNamespace()
+{
+  std::string name = namespace_property_->getStdString();
+
+  try
+  {
+    nh_ = ros::NodeHandle(name);
+  }
+  catch (ros::InvalidNameException e)
+  {
+    setStatus(StatusProperty::Warn, "Display namespace", "Invalid namespace: " + QString(e.what()));
+    ROS_ERROR("%s", e.what());
+    return;
+  }
+
+  video_publisher_->setNodehandle(nh_);
+
+  // ROS_INFO("New namespace: '%s'", nh_.getNamespace().c_str());
+  trigger_service_.shutdown();
+  trigger_service_ = nh_.advertiseService(camera_trigger_name_, &CameraPub::triggerCallback, this);
+
+  /// Check for service name collision
+  if (trigger_service_.getService().empty())
+  {
+    setStatus(StatusProperty::Warn, "Display namespace",
+              "Could not create trigger. Make sure that display namespace is unique!");
+    return;
+  }
+
+  setStatus(StatusProperty::Ok, "Display namespace", "OK");
+  updateTopic();
 }
 
 void CameraPub::clear()
