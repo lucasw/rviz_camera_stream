@@ -104,8 +104,11 @@ private Q_SLOTS:
   void updateTopic();
   virtual void updateQueueSize();
   virtual void updateFrameRate();
+  virtual void updateDisplayName();
 
 private:
+  std::string camera_trigger_name_;
+
   void subscribe();
   void unsubscribe();
 
@@ -113,6 +116,8 @@ private:
   bool triggerCallback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res);
   bool trigger_activated_;
   ros::Time last_image_publication_time_;
+
+  std::string findUnusedDisplayName();
 
   void caminfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg);
 
@@ -127,6 +132,8 @@ private:
   RosTopicProperty* camera_info_property_;
   DisplayGroupVisibilityProperty* visibility_property_;
   IntProperty* queue_size_property_;
+  StringProperty* name_property_;
+
   FloatProperty* frame_rate_property_;
 
   sensor_msgs::CameraInfo::ConstPtr current_caminfo_;
