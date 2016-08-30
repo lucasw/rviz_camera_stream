@@ -180,12 +180,9 @@ CameraPub::CameraPub()
 
   frame_rate_property_ = new FloatProperty("Frame Rate", 0,
       "Sets target frame rate. Set to -1 for maximum speed, set to 0 to stop, you can "
-      "trigger single images with the /rviz_camera_trigger service. Upon changing the camera"
-      "info or camera topic this property will reset to 0 and is read only until you "
-      "pick an encoding.",
+      "trigger single images with the /rviz_camera_trigger service.",
                                            this, SLOT(updateFrameRate()));
   frame_rate_property_->setMin(-1);
-  frame_rate_property_->setReadOnly(true);
 
   encoding_property_ = new EnumProperty("Encoding", "", "Sets the encoding.", this, SLOT(updateEncoding()));
 }
@@ -375,7 +372,6 @@ void CameraPub::updateFrameRate()
 
 void CameraPub::updateEncoding()
 {
-  frame_rate_property_->setReadOnly(false);
 }
 
 void CameraPub::clear()
@@ -607,28 +603,19 @@ void CameraPub::reset()
   Display::reset();
 
   encoding_property_->clearOptions();
-  frame_rate_property_->setFloat(0.0);
-  frame_rate_property_->setReadOnly(true);
 
   Ogre::PixelFormat pf = render_texture_->suggestPixelFormat();
   uint pixelsize = Ogre::PixelUtil::getNumElemBytes(pf);
   if (pixelsize == 3)
   {
-    ROS_WARN("3");
     encoding_property_->addOptionStd("rgb8", 1);
     encoding_property_->addOptionStd("bgr8", 2);
   }
   else if (pixelsize == 4)
   {
-    ROS_WARN("4");
     encoding_property_->addOptionStd("rgba8", 3);
     encoding_property_->addOptionStd("bgra8", 4);
   }
-  else
-  {
-    ROS_WARN("PIXELSIZE");
-  }
-
   clear();
 }
 
