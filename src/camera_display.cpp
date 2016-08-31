@@ -178,7 +178,7 @@ CameraPub::CameraPub()
                                           this, SLOT(updateQueueSize()));
   queue_size_property_->setMin(1);
 
-  frame_rate_property_ = new FloatProperty("Frame Rate", 0,
+  frame_rate_property_ = new FloatProperty("Frame Rate", -1,
       "Sets target frame rate. Set to -1 for maximum speed, set to 0 to stop, you can "
       "trigger single images with the /rviz_camera_trigger service.",
                                            this, SLOT(updateFrameRate()));
@@ -601,22 +601,23 @@ void CameraPub::fixedFrameChanged()
 void CameraPub::reset()
 {
   Display::reset();
-
+  clear();
   encoding_property_->clearOptions();
 
   Ogre::PixelFormat pf = render_texture_->suggestPixelFormat();
   uint pixelsize = Ogre::PixelUtil::getNumElemBytes(pf);
   if (pixelsize == 3)
   {
+    encoding_property_->setValue("rgb8");
     encoding_property_->addOptionStd("rgb8", 1);
     encoding_property_->addOptionStd("bgr8", 2);
   }
   else if (pixelsize == 4)
   {
+    encoding_property_->setValue("rgba8");
     encoding_property_->addOptionStd("rgba8", 3);
     encoding_property_->addOptionStd("bgra8", 4);
   }
-  clear();
 }
 
 }  // namespace rviz
