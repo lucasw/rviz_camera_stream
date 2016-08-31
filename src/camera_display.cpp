@@ -78,14 +78,14 @@ public:
 
   bool is_active()
   {
-      return not pub_.getTopic().empty();
+    return not pub_.getTopic().empty();
   }
 
   void setNodehandle(const ros::NodeHandle& nh)
   {
-      shutdown();
-      nh_ = nh;
-      it_ = image_transport::ImageTransport(nh_);
+    shutdown();
+    nh_ = nh;
+    it_ = image_transport::ImageTransport(nh_);
   }
 
   void shutdown()
@@ -407,39 +407,34 @@ void CameraPub::updateFrameRate()
 
 void CameraPub::updateDisplayNamespace()
 {
-    std::string name = namespace_property_->getStdString();
-//    if (name.empty())
-//    {
-//      //setStatus(StatusProperty::Warn, "Display namespace", "Should not be empty.");
-//        return;
-//    }
+  std::string name = namespace_property_->getStdString();
 
-    try
-    {
-      nh_ = ros::NodeHandle(name);
-    }catch (ros::InvalidNameException e)
-    {
-        setStatus(StatusProperty::Warn, "Display namespace", "Invalid namespace: " + QString(e.what()));
-        ROS_ERROR("%s", e.what());
-        return;
-    }
+  try
+  {
+    nh_ = ros::NodeHandle(name);
+  }catch (ros::InvalidNameException e)
+  {
+    setStatus(StatusProperty::Warn, "Display namespace", "Invalid namespace: " + QString(e.what()));
+    ROS_ERROR("%s", e.what());
+    return;
+  }
 
-    video_publisher_->setNodehandle(nh_);
+  video_publisher_->setNodehandle(nh_);
 
-    // ROS_INFO("New namespace: '%s'", nh_.getNamespace().c_str());
-    trigger_service_.shutdown();
-    trigger_service_ = nh_.advertiseService(camera_trigger_name_, &CameraPub::triggerCallback, this);
+  // ROS_INFO("New namespace: '%s'", nh_.getNamespace().c_str());
+  trigger_service_.shutdown();
+  trigger_service_ = nh_.advertiseService(camera_trigger_name_, &CameraPub::triggerCallback, this);
 
-    /// Check for service name collision
-    if (trigger_service_.getService().empty())
-    {
-        setStatus(StatusProperty::Warn, "Display namespace",
-                  "Could not create trigger. Make sure that display namespace is unique!");
-        return;
-    }
+  /// Check for service name collision
+  if (trigger_service_.getService().empty())
+  {
+    setStatus(StatusProperty::Warn, "Display namespace",
+              "Could not create trigger. Make sure that display namespace is unique!");
+    return;
+  }
 
-    setStatus(StatusProperty::Ok, "Display namespace", "OK");
-    updateTopic();
+  setStatus(StatusProperty::Ok, "Display namespace", "OK");
+  updateTopic();
 }
 
 void CameraPub::clear()
