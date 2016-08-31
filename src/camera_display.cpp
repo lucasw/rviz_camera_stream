@@ -76,6 +76,11 @@ public:
   {
   }
 
+  bool is_active()
+  {
+      return not pub_.getTopic().empty();
+  }
+
   void setNodehandle(const ros::NodeHandle& nh)
   {
       shutdown();
@@ -214,12 +219,18 @@ CameraPub::~CameraPub()
   }
 }
 
-bool CameraPub::triggerCallback(std_srvs::TriggerRequest& req,
-                     std_srvs::TriggerResponse& res)
+bool CameraPub::triggerCallback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res)
 {
-  trigger_activated_ = true;
-  res.success = true;
-  res.message = "New image was triggered";
+    res.success = video_publisher_->is_active();
+    if (res.success)
+    {
+      trigger_activated_ = true;
+      res.message = "New image was triggered";
+    }
+    else
+    {
+      res.message = "Image publisher not configured";
+    }
   return true;
 }
 
@@ -267,6 +278,7 @@ void CameraPub::onInitialize()
   visibility_property_->setIcon(loadPixmap("package://rviz/icons/visibility.svg", true));
 
   this->addChild(visibility_property_, 0);
+  updateDisplayNamespace();
 }
 
 void CameraPub::updateTopic()
@@ -377,7 +389,6 @@ void CameraPub::unsubscribe()
 {
   video_publisher_->shutdown();
   caminfo_sub_.shutdown();
-  trigger_service_.shutdown();
 }
 
 void CameraPub::forceRender()
