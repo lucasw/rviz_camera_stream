@@ -178,8 +178,8 @@ CameraPub::CameraPub()
                                           this, SLOT(updateQueueSize()));
   queue_size_property_->setMin(1);
 
-  frame_rate_property_ = new FloatProperty("Frame Rate", -1,
-      "Sets target frame rate. Set to -1 for maximum speed, set to 0 to stop, you can "
+  frame_rate_property_ = new FloatProperty("Frame Rate", 0,
+      "Sets target frame rate. Set to < 0 for maximum speed, set to 0 to stop, you can "
       "trigger single images with the /rviz_camera_trigger service.",
                                            this, SLOT(updateFrameRate()));
   frame_rate_property_->setMin(-1);
