@@ -618,6 +618,10 @@ void CameraPub::reset()
     encoding_property_->addOptionStd("rgba8", 3);
     encoding_property_->addOptionStd("bgra8", 4);
   }
+  else
+  {
+    ROS_WARN("Unsupported pixel size: %d! Could not find image encoding!", pixelsize);
+  }
 }
 
 }  // namespace rviz
