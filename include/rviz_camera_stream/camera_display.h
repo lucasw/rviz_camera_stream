@@ -31,6 +31,7 @@
 #define RVIZ_CAMERA_STREAM_CAMERA_DISPLAY_H
 
 #include <QObject>
+#include <string>
 
 #ifndef Q_MOC_RUN
 #include <OgreMaterial.h>

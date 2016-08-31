@@ -78,7 +78,7 @@ public:
 
   bool is_active()
   {
-    return not pub_.getTopic().empty();
+    return !pub_.getTopic().empty();
   }
 
   void setNodehandle(const ros::NodeHandle& nh)
@@ -181,12 +181,11 @@ CameraPub::CameraPub()
   , caminfo_ok_(false)
   , video_publisher_(0)
 {
-
   topic_property_ = new RosTopicProperty("Image Topic", "",
       QString::fromStdString(ros::message_traits::datatype<sensor_msgs::Image>()),
       "sensor_msgs::Image topic to publish to.", this, SLOT(updateTopic()));
 
-  namespace_property_ = new StringProperty("Display namespace", "", //QString(default_display_name.c_str()
+  namespace_property_ = new StringProperty("Display namespace", "",
       "Namespace for this display.", this, SLOT(updateDisplayNamespace()));
 
   camera_info_property_ = new RosTopicProperty("Camera Info Topic", "",
@@ -412,7 +411,8 @@ void CameraPub::updateDisplayNamespace()
   try
   {
     nh_ = ros::NodeHandle(name);
-  }catch (ros::InvalidNameException e)
+  }
+  catch (ros::InvalidNameException e)
   {
     setStatus(StatusProperty::Warn, "Display namespace", "Invalid namespace: " + QString(e.what()));
     ROS_ERROR("%s", e.what());
