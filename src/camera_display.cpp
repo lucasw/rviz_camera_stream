@@ -89,7 +89,7 @@ public:
   }
 
   // bool publishFrame(Ogre::RenderWindow * render_object, const std::string frame_id)
-  bool publishFrame(Ogre::RenderTexture * render_object, const std::string frame_id)
+  bool publishFrame(Ogre::RenderTexture * render_object, const std::string frame_id, std::string requested_encoding)
   {
     if (pub_.getTopic() == "")
     {
@@ -121,14 +121,7 @@ public:
     image.height = height;
     image.width = width;
     image.step = pixelsize * width;
-    if (pixelsize == 3)
-      image.encoding = sensor_msgs::image_encodings::RGB8;  // would break if pf changes
-    else if (pixelsize == 4)
-      image.encoding = sensor_msgs::image_encodings::RGBA8;  // would break if pf changes
-    else
-    {
-      ROS_ERROR_STREAM("unknown pixe format " << pixelsize << " " << pf);
-    }
+    image.encoding = requested_encoding;
     image.is_bigendian = (OGRE_ENDIAN == OGRE_ENDIAN_BIG);
     image.data.resize(datasize);
     memcpy(&image.data[0], data, datasize);
@@ -190,6 +183,8 @@ CameraPub::CameraPub()
       "trigger single images with the /rviz_camera_trigger service.",
                                            this, SLOT(updateFrameRate()));
   frame_rate_property_->setMin(-1);
+
+  encoding_property_ = new EnumProperty("Encoding", "", "Sets the encoding.", this, SLOT(updateEncoding()));
 }
 
 CameraPub::~CameraPub()
@@ -300,8 +295,9 @@ void CameraPub::postRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
     frame_id = current_caminfo_->header.frame_id;
   }
 
+  std::string requested_encoding = encoding_property_->getStdString();
   // render_texture_->update();
-  video_publisher_->publishFrame(render_texture_, frame_id);
+  video_publisher_->publishFrame(render_texture_, frame_id, requested_encoding);
 }
 
 void CameraPub::onEnable()
@@ -371,6 +367,10 @@ void CameraPub::updateQueueSize()
 }
 
 void CameraPub::updateFrameRate()
+{
+}
+
+void CameraPub::updateEncoding()
 {
 }
 
@@ -602,6 +602,26 @@ void CameraPub::reset()
 {
   Display::reset();
   clear();
+  encoding_property_->clearOptions();
+
+  Ogre::PixelFormat pf = render_texture_->suggestPixelFormat();
+  uint pixelsize = Ogre::PixelUtil::getNumElemBytes(pf);
+  if (pixelsize == 3)
+  {
+    encoding_property_->setValue("rgb8");
+    encoding_property_->addOptionStd("rgb8", 1);
+    encoding_property_->addOptionStd("bgr8", 2);
+  }
+  else if (pixelsize == 4)
+  {
+    encoding_property_->setValue("rgba8");
+    encoding_property_->addOptionStd("rgba8", 3);
+    encoding_property_->addOptionStd("bgra8", 4);
+  }
+  else
+  {
+    ROS_WARN("Unsupported pixel size: %d! Could not find image encoding!", pixelsize);
+  }
 }
 
 }  // namespace rviz
