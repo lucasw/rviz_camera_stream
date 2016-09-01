@@ -121,8 +121,6 @@ private:
   bool trigger_activated_;
   ros::Time last_image_publication_time_;
 
-  std::string findUnusedDisplayName();
-
   void caminfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg);
 
   bool updateCamera();
