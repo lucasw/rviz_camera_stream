@@ -77,6 +77,11 @@ public:
   {
   }
 
+  std::string get_topic()
+  {
+    return pub_.getTopic();
+  }
+
   bool is_active()
   {
     return !pub_.getTopic().empty();
@@ -229,7 +234,7 @@ bool CameraPub::triggerCallback(std_srvs::TriggerRequest& req, std_srvs::Trigger
     if (res.success)
     {
       trigger_activated_ = true;
-      res.message = "New image was triggered";
+      res.message = "New image will be published on: " + video_publisher_->get_topic();
     }
     else
     {
