@@ -61,6 +61,12 @@ target_link_libraries(rviz_camera_stream
   ${QT_LIBRARIES}
 )
 
+install (TARGETS rviz_camera_stream
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
+
 # install
 install(FILES
   plugin_description.xml
