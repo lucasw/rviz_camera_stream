@@ -575,7 +575,18 @@ bool CameraPub::updateCamera()
 
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
-  context_->getFrameManager()->getTransform(info->header.frame_id, info->header.stamp, position, orientation);
+  bool success =
+    context_->getFrameManager()->getTransform
+    (info->header.frame_id, info->header.stamp, position, orientation);
+  if (!success) {
+    std::string error;
+    bool res
+      (context_->getFrameManager()->transformHasProblems
+       (info->header.frame_id, info->header.stamp, error));
+    if (res) {
+      ROS_ERROR ("%s", error.c_str ());
+    }
+  }
 
   // printf( "CameraPub:updateCamera(): pos = %.2f, %.2f, %.2f.\n", position.x, position.y, position.z );
 
