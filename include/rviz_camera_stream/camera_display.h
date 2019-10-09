@@ -101,7 +101,6 @@ protected:
 
 private Q_SLOTS:
   void forceRender();
-  void updateAlpha();
 
   void updateTopic();
   virtual void updateQueueSize();
