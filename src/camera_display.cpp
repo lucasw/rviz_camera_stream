@@ -181,6 +181,7 @@ public:
     pub_.publish(image, camera_info_);
 
     OGRE_FREE(data, Ogre::MEMCATEGORY_RENDERSYS);
+    return true;
   }
 };
 }  // namespace video_export
